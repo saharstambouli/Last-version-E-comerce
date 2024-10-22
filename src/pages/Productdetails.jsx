@@ -41,10 +41,21 @@ const ProductDetails = () => {
     dispatch(ADD_FAVORITES(product));
   };
 
-  const handleBuyNow = () => {
-    alert('Thank you for your purchase!');
+
+  const handleBuyNow = async () => {
+    try {
+      const response = await axios.delete('http://localhost:5000/Product/delete', {
+        data: { productId: product._id, quantity: parseInt(quantity) }  // Use 'data' property for body
+      });
+      alert(response.data.message);
+    } catch (error) {
+      console.error('Error purchasing product:', error);
+      alert('Error purchasing product. Please try again.');
+    }
   };
 
+
+  
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="bg-white shadow">
@@ -118,7 +129,3 @@ const ProductDetails = () => {
 };
 
 export default ProductDetails;
-
-
-
-

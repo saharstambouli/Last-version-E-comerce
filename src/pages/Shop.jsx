@@ -105,9 +105,7 @@ const Shop = () => {
         ))}
       </div>
 
-      <div className="button-container">
-        <button className='Show'>Show More</button>
-      </div>
+     
     </div>
   );
 };

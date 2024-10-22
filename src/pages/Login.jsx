@@ -1,5 +1,8 @@
+// src/components/Login.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux'; 
+import { login } from '../Reducers/userSlice'; 
 import axios from 'axios';
 
 const initialState = {
@@ -11,14 +14,14 @@ const initialState = {
 };
 
 const Login = () => {
-  const [isSignup, setIsSignup] = useState(true);
+  const [isSignup, setIsSignup] = useState(false);
   const [inputs, setInputs] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const navigate = useNavigate(); // to navigate after login/signup
+  const navigate = useNavigate();
+  const dispatch = useDispatch(); 
 
-  // Handle input changes
   const handleInputs = (e) => {
     const { name, value } = e.target;
     setInputs({
@@ -28,7 +31,6 @@ const Login = () => {
     setErrors({ ...errors, [name]: "" });
   };
 
-  // Validate form inputs
   const validate = () => {
     let formErrors = {};
     if (!inputs.email) {
@@ -53,74 +55,71 @@ const Login = () => {
     return formErrors;
   };
 
-  // Function to register a new user
   const fetchRegister = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/User/register', {
+      await axios.post('http://localhost:5000/User/register', {
         firstName: inputs.firstName,
         lastName: inputs.lastName,
         email: inputs.email,
         password: inputs.password
       });
-      console.log('Registration successful:', response.data);
-      localStorage.setItem('user', JSON.stringify({
+      dispatch(login({
         firstName: inputs.firstName,
-        lastName: inputs.lastName
-      }));
-      navigate('/HomeLogin'); // redirect after signup
-      window.location.reload(); 
+        lastName: inputs.lastName,
+        email: inputs.email
+      })); // Dispatch the login action after registration
+      navigate('/HomeLogin');
     } catch (error) {
-      console.error('Registration error:', error.response.data); 
-      setErrors({ ...errors, server: error.response.data.message || 'Registration failed. Please try again.' });
+      setErrors({ ...errors, server: error.response?.data?.message || 'Registration failed. Please try again.' });
     }
   };
 
+  const fetchLogin = async () => {
+    console.log(inputs.email, inputs.password)
+    try {
+      const response = await axios.post('http://localhost:5000/User/login', {
+        email: inputs.email,
+        password: inputs.password
+      });
   
-    // Function to login the user
-    const fetchLogin = async () => {
-      try {
-        const response = await axios.post('http://localhost:5000/User/login', {
-          email: inputs.email,
-          password: inputs.password
-        });
-        console.log('Login successful:', response.data);
-    
-        // Save user details to localStorage
-        localStorage.setItem('user', JSON.stringify({
-          firstName: response.data.firstName,
-          lastName: response.data.lastName
-        }));
-    
-        // Redirect after login
-        navigate('/HomeLogin'); 
-        window.location.reload(); 
-      } catch (error) {
-        console.error('Login error:', error);
-        setErrors({ ...errors, server: 'Login failed. Please check your credentials.' });
-      }
-    };
-  // Handle form submission
+      const { accessToken, user } = response.data;
+  
+      // Use response data to dispatch user information to Redux store
+      dispatch(login({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }));
+  
+      // Optionally, store the token in localStorage or a global state
+      localStorage.setItem('accessToken', accessToken); // Save token if needed
+  
+      navigate('/HomeLogin');
+    } catch (error) {
+      console.error('Error in login request:', error.response?.data);
+      setErrors({ ...errors, server: 'Login failed. Please check your credentials.' });
+    }
+  };
+  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
-
     if (Object.keys(validationErrors).length === 0) {
       setFormSubmitted(true);
       if (isSignup) {
-        await fetchRegister(); // Call register function
+        await fetchRegister();
         setSuccessMessage('Sign Up Done');
       } else {
-        await fetchLogin(); // Call login function
+        await fetchLogin();
         setSuccessMessage('Login Done');
       }
-      console.log('Form Submitted', inputs);
     } else {
       setErrors(validationErrors);
       setFormSubmitted(false);
     }
   };
 
-  // Toggle form between login and signup
   const toggleForm = () => {
     setIsSignup(!isSignup);
     setErrors({});
@@ -221,6 +220,18 @@ const Login = () => {
               )}
             </div>
 
+            {/* Forgot Password Link */}
+            {!isSignup && (
+              <div className="flex w-3/4 mb-4">
+                <Link
+                  to="/reset-password"
+                  className="text-sm text-indigo-500 hover:text-indigo-700"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+            )}
+
             {isSignup && (
               <div className="mb-6 w-3/4">
                 <label className="block text-gray-700 font-semibold mb-2" htmlFor="confirmPassword">
@@ -276,5 +287,4 @@ const Login = () => {
     </div>
   );
 };
-
 export default Login;

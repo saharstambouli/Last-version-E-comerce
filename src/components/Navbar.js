@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faSearch, faHeart, faShoppingCart } from '@fortawesome/free-solid-svg-icons'; 
+import { faUser, faSearch, faHeart, faShoppingCart } from '@fortawesome/free-solid-svg-icons';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../Reducers/userSlice'; // Import the logout action
 
 const Navbar = () => {
-  const user = JSON.parse(localStorage.getItem('user')); // Retrieve user from localStorage
+  const { firstName, lastName, isAuthenticated } = useSelector((state) => state.user_store);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Logout function to clear user data and redirect to login
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/login');
+    dispatch(logout()); // Dispatch logout action
+    navigate('/login'); // Redirect to login page
   };
 
   return (
@@ -34,10 +36,10 @@ const Navbar = () => {
 
         {/* Icons Section */}
         <div className="flex space-x-4 items-center">
-          {user ? (
+          {isAuthenticated ? (
             <>
               {/* Display user name */}
-              <p className="text-gray-800"> {user.firstName} {user.lastName}</p>
+              <p className="text-gray-800">{firstName} {lastName}</p>
               <button 
                 onClick={handleLogout} 
                 className="text-decoration-none text-dark hover:text-gray-400 ml-4"
@@ -50,7 +52,7 @@ const Navbar = () => {
               <FontAwesomeIcon icon={faUser} />
             </Link>
           )}
-          
+
           <Link to='/Search' className="text-decoration-none text-dark hover:text-gray-400">
             <FontAwesomeIcon icon={faSearch} />
           </Link>
@@ -67,4 +69,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

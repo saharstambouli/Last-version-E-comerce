@@ -54,7 +54,7 @@ const ProductCard = ({ product }) => {
           {isAddedToCart ? 'Remove from Cart' : 'Add to Cart'}
         </button>
         <button
-          className="flex items-center justify-center bg-red-600 text-white text-sm font-bold px-2 py-1 rounded hover:bg-red-700 transition duration-300"
+          className="flex items-center justify-center  text-white text-sm font-bold px-2 py-1 rounded hover:bg-red-700 transition duration-300" style={{ backgroundColor: "#B88E2F" }}
           onClick={toggleFavorite}
         >
           <FontAwesomeIcon icon={faHeart} className="mr-1" />
